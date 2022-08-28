@@ -1,0 +1,43 @@
+; pin 0 - data
+; pin 1 - ctrl
+
+.program atk
+
+check:
+    JMP !OSRE bitLoopOut
+    JMP PIN check     ;if pin is high no incoming     
+
+    ;wait 0 pin 1     ; skip start bit
+    wait 1 pin 1
+
+    set x, 7         ; 8 bit counter
+bitloopIn:
+    wait 0 pin 1 [1] ; wait negative clock edge 
+    in pins, 1       ; sample data
+    wait 1 pin 1     ; wait for positive edge
+    jmp x-- bitloopIn
+
+    wait 0 pin 1     ; party and stop bit might be usefull to use down the line
+    wait 1 pin 1
+    wait 0 pin 1
+    wait 1 pin 1
+
+    irq  set 0
+    JMP check
+
+bitLoopOut:
+    SET PINDIRS 2 [14]; turn clock output and should pull the line low for the needed 100ms 
+    SET PINDIRS 1  [1]; turn back to input and since there's a pull up it will go high
+    set PINS 0        ; make sure pins are low might have been set high from out section
+    set x, 8         ; 9 bit counter
+bitLoopOutLoop:
+    wait 0 pin 1 [1]
+    OUT pins, 1 
+    wait 1 pin 1
+    jmp x-- bitLoopOutLoop
+    
+    wait 0 pin 1
+    SET PINDIRS 0  ;; let the hole thing finish up
+
+    wait 0 pin 0 ; wait for the ack
+    wait 1 pin 0 ; wait for the ack
