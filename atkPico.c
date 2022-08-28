@@ -1,7 +1,5 @@
 #include "atk.pio.h"
-
 #include "atkPico.h"
-
 #include "hardware/clocks.h"
 #include "hardware/pio.h"
 
@@ -26,7 +24,7 @@ unsigned int atk_add_parity(unsigned char byte)
         byte = byte >> 1;
     }
 
-    returnData +=  (!(numOnes & 1)) << 9;
+    returnData +=  (!(numOnes & 1)) << 8;
     return returnData;
 }
 
@@ -141,8 +139,6 @@ void atk_init(uint pio, uint gpio) {
     sm_config_set_jmp_pin(&c, clkPin); // set the EXECCTRL_JMP_PIN
 
 //configure out section PS2
-    // Set pin directions base
-    pio_sm_set_consecutive_pindirs(atk_pio, atk_sm, gpio, 2, false);
     // Set the out pins
     sm_config_set_out_pins(&c, gpio, 2);
 // Shift 8 bits to the right, autopush enabled
@@ -153,14 +149,13 @@ void atk_init(uint pio, uint gpio) {
     sm_config_set_in_pins(&c, gpio);
 
 //start the pins as input at start
-    uint32_t both_pins = (1u << dataPin) | (1u << (clkPin) );
-    pio_sm_set_pins_with_mask(atk_pio, atk_sm, both_pins, 0);
-    pio_sm_set_pindirs_with_mask(atk_pio, atk_sm, both_pins, 0);
-    pio_gpio_init(atk_pio, dataPin);
-    pio_gpio_init(atk_pio, clkPin);
-    
+    pio_sm_set_consecutive_pindirs(atk_pio, atk_sm, gpio, 2, false);
     // Shift 8 bits to the right, autopush enabled
     sm_config_set_in_shift(&c, true, true, 8);
+
+//init the gpio
+    pio_gpio_init(atk_pio, dataPin);
+    pio_gpio_init(atk_pio, clkPin);
 
     // We don't expect clock faster than 16.7KHz and want no less
     // than 8 SM cycles per keyboard clock.

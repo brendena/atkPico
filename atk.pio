@@ -26,18 +26,20 @@ bitloopIn:
     JMP check
 
 bitLoopOut:
+    set PINS 0        ; data line needs to be low so proactively set
     SET PINDIRS 2 [14]; turn clock output and should pull the line low for the needed 100ms 
     SET PINDIRS 1  [1]; turn back to input and since there's a pull up it will go high
-    set PINS 0        ; make sure pins are low might have been set high from out section
     set x, 8         ; 9 bit counter
 bitLoopOutLoop:
     wait 0 pin 1 [1]
-    OUT pins, 1 
+    OUT pins, 1     ;set data when clk low because read on click rise
     wait 1 pin 1
     jmp x-- bitLoopOutLoop
-    
-    wait 0 pin 1
-    SET PINDIRS 0  ;; let the hole thing finish up
 
-    wait 0 pin 0 ; wait for the ack
-    wait 1 pin 0 ; wait for the ack
+    wait 0 pin 1 [1]
+    set PINS 1 ;stop bit
+    wait 1 pin 0
+
+    wait 0 pin 0
+    SET PINDIRS 0  ; give data line back to keyboard for awk
+    wait 1 pin 0 [5]
