@@ -14,7 +14,7 @@ static Ps2LockingKeysUnion lockedKeys;
 
 void __attribute__((weak)) handle_ps2_keyboard_event(unsigned char ps2Key, unsigned char released, unsigned char ext, Ps2LockingKeysUnion *lockedKeys){}
 
-unsigned int atk_add_parity(unsigned char byte)
+unsigned int ps2_add_parity(unsigned char byte)
 {
     unsigned int returnData = byte;
     unsigned numOnes = 0;
@@ -35,7 +35,7 @@ void handleLeds(unsigned char ps2Key, unsigned char release){
     {
         if(ps2Key == PS2_ACK_RESPONSE){
             if(sending_to_keyboard == PS2_COMMANDS_SET_LEDS){
-                atk_send_command(atk_add_parity(lockedKeys.value));
+                atk_send_command(ps2_add_parity(lockedKeys.value));
             }
             else{
                 sending_to_keyboard = 0;//??? probably not the right call.  for longer messages
